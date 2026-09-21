@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediCare New Sale</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #1565C0;
+      --primary-light: #1976D2;
+      --primary-bg: #E3F2FD;
+      --success: #2E7D32;
+      --danger: #C62828;
+      --warning: #E65100;
+      --border: #CFD8DC;
+      --text: #1A2332;
+      --muted: #607D8B;
+      --row-odd: #ffffff;
+      --row-even: #F0FFF4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #EEF2F7;
+      color: var(--text);
+      min-height: 100vh;
+    }
+    h2, h3, .brand { font-family: 'Space Grotesk', sans-serif; }
+
+    /* ── Top Bar ── */
+    .topbar {
+      background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+      box-shadow: 0 2px 12px rgba(21,101,192,.35);
+    }
+    .topbar h1 { font-family: 'Space Grotesk', sans-serif; letter-spacing: -.5px; }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .card-header {
+      background: var(--primary-bg);
+      border-bottom: 2px solid var(--primary);
+      border-radius: 10px 10px 0 0;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: .78rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--primary);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* ── Inputs ── */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .field label {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .field input, .field textarea {
+      border: 1px solid #B0BEC5;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: .85rem;
+      font-family: 'DM Sans', sans-serif;
+      background: #FAFBFC;
+      transition: border-color .15s, box-shadow .15s;
+      width: 100%;
+    }
+    .field input:focus, .field textarea:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(25,118,210,.12);
+      background: #fff;
+    }
+    .field input[readonly] { background: #ECEFF1; color: #546E7A; cursor: not-allowed; }
+
+    /* ── Product Table ── */
+    .product-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+    .product-table thead tr {
+      background: #2E7D32;
+      color: #fff;
+    }
+    .product-table thead th {
+      padding: 9px 7px;
+      text-align: center;
+      font-weight: 600;
+      letter-spacing: .04em;
+      font-size: .72rem;
+      white-space: nowrap;
+    }
+    .product-table tbody tr:nth-child(even) { background: var(--row-even); }
+    .product-table tbody tr:nth-child(odd) { background: var(--row-odd); }
+    .product-table tbody tr { transition: background .1s; }
+    .product-table tbody tr:hover { background: #E3F2FD; }
+    .product-table td {
+      padding: 5px 4px;
+      border-bottom: 1px solid #ECEFF1;
+      vertical-align: middle;
+    }
+    .product-table input {
+      border: 1px solid transparent;
+      border-radius: 5px;
+      padding: 5px 6px;
+      font-size: .78rem;
+      font-family: 'DM Sans', sans-serif;
+      background: transparent;
+      width: 100%;
+      text-align: center;
+    }
+    .product-table input:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(25,118,210,.15);
+    }
+    .product-table input[readonly] { background: #ECEFF1; color: #546E7A; cursor: default; }
+    .product-table .total-cell { color: #2E7D32; font-weight: 700; text-align: right; padding-right: 8px; }
+
+    /* ── Autocomplete ── */
+    .autocomplete-wrap { position: relative; }
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #90CAF9;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 230px;
+      overflow-y: auto;
+      z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    }
+    .autocomplete-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #E3F2FD;
+      display: flex;
+      flex-direction: column;
+    }
+    .autocomplete-item:hover, .autocomplete-item.active { background: #E3F2FD; }
+    .autocomplete-item .prod-name { font-weight: 600; color: var(--primary); font-size: .82rem; }
+    .autocomplete-item .prod-salt { font-size: .72rem; color: #607D8B; }
+    .autocomplete-item .prod-info { font-size: .7rem; color: #78909C; margin-top: 1px; }
+
+    /* ── Buttons ── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 8px; font-size: .82rem; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; border: none; transition: all .15s; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: #0D47A1; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(21,101,192,.35); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #1B5E20; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(46,125,50,.35); }
+    .btn-add { background: #1565C0; color: #fff; font-size: .78rem; padding: 6px 14px; border-radius: 6px; }
+    .btn-add:hover { background: #0D47A1; }
+    .btn-del { background: none; border: none; cursor: pointer; color: #E53935; padding: 4px; border-radius: 4px; transition: background .15s; }
+    .btn-del:hover { background: #FFEBEE; }
+
+    /* ── Summary Box ── */
+    .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 12px; font-size: .82rem; }
+    .summary-row.grand { background: linear-gradient(90deg, #2E7D32 0%, #388E3C 100%); color: #fff; border-radius: 7px; padding: 9px 14px; margin-top: 4px; }
+    .summary-row .lbl { color: #546E7A; }
+    .summary-row .val { font-weight: 700; color: var(--text); }
+    .summary-row .val-red { font-weight: 700; color: #C62828; }
+    .summary-row.grand .lbl, .summary-row.grand .val { color: #fff; font-size: .92rem; }
+
+    /* ── Badge ── */
+    .badge-invoice { background: #E3F2FD; border: 1px solid #90CAF9; color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: .78rem; font-weight: 700; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      padding: 12px 22px; border-radius: 10px; font-size: .85rem; font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0,0,0,.18); transform: translateY(80px); opacity: 0;
+      transition: all .3s; pointer-events: none;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { background: #2E7D32; color: #fff; }
+    #toast.error { background: #C62828; color: #fff; }
+
+    /* ── Salt checkbox ── */
+    .salt-label { display: flex; align-items: center; gap: 4px; font-size: .68rem; font-weight: 700; color: #E65100; cursor: pointer; user-select: none; }
+    .salt-label input[type=checkbox] { width: 13px; height: 13px; accent-color: #E65100; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ TOP BAR ═══════════════════════════ -->
+<header class="topbar text-white px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+  <div class="flex items-center gap-3">
+    <svg class="w-7 h-7 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    <div>
+      <h1 class="text-lg font-bold leading-none">MediCare Billing</h1>
+      <p class="text-xs text-blue-200">Pharmacy & Clinic Management</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-4">
+    <span id="badge-invoice" class="badge-invoice text-blue-900">SAL-20260608-777</span>
+    <a href="sales_list.php" class="btn text-sm text-white border border-white/40 px-3 py-1.5 rounded-lg hover:bg-white/10">← Back to List</a>
+  </div>
+</header>
+
+<!-- ═══════════════════════════ MAIN CONTENT ═══════════════════════════ -->
+<main class="max-w-screen-xl mx-auto px-4 py-5 space-y-4">
+
+  <!-- ── Row 1: Patient | Doctor | Invoice ── -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+    <!-- Patient Details -->
+    <div class="card lg:col-span-1">
+      <div class="card-header">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        Patient Details
+      </div>
+      <div class="p-4 space-y-3">
+        <div class="field">
+          <label>Patient Name <span class="text-red-500">*</span></label>
+          <div class="relative">
+            <input id="patientName" type="text" placeholder="Patient Name" autocomplete="off" />
+            <button class="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800 p-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input id="patientPhone" type="tel" placeholder="Phone Number" />
+        </div>
+        <div class="field">
+          <label>Address</label>
+          <input id="patientAddress" type="text" placeholder="Address" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor Details -->
+    <div class="card lg:col-span-1">
+      <div class="card-header">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Doctor Details
+      </div>
+      <div class="p-4 space-y-3">
+        <div class="field">
+          <label>Doctor Name</label>
+          <div class="autocomplete-wrap" id="doctorWrap">
+            <input id="doctorName" type="text" placeholder="Enter Doctor Name" autocomplete="off" />
+            <div class="autocomplete-dropdown hidden" id="doctorDropdown"></div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 mt-1">
+          <input type="checkbox" id="reminderChk" class="w-4 h-4 accent-blue-700 cursor-pointer" />
+          <label for="reminderChk" class="text-sm font-medium text-blue-700 cursor-pointer">Reminder? (Send follow-up alert)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice Info -->
+    <div class="card lg:col-span-1">
+      <div class="card-header">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Invoice Info
+      </div>
+      <div class="p-4 space-y-3">
+        <div class="field">
+          <label>Invoice No</label>
+          <input id="invoiceNo" type="text" readonly value="SAL-20260608-777" />
+        </div>
+        <div class="field">
+          <label>Invoice Date <span class="text-red-500">*</span></label>
+          <input id="invoiceDate" type="date" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Product Details ── -->
+  <div class="card">
+    <div class="card-header justify-between">
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        Product Details
+      </div>
+      <button class="btn btn-add" onclick="addRow()">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        + Add Row
+      </button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="product-table" id="productTable">
+        <thead>
+          <tr>
+            <th style="width:22%">Product</th>
+            <th style="width:6%">SALT</th>
+            <th style="width:6%">Qty</th>
+            <th style="width:9%">Batch</th>
+            <th style="width:8%">Exp Date</th>
+            <th style="width:7%">Rate</th>
+            <th style="width:6%">GST%</th>
+            <th style="width:8%">MRP</th>
+            <th style="width:7%">Disc%</th>
+            <th style="width:8%">Total</th>
+            <th style="width:5%">Del</th>
+          </tr>
+        </thead>
+        <tbody id="productBody">
+          <!-- rows injected by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Additional Charges + Summary ── -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- Additional Charges -->
+    <div class="card">
+      <div class="card-header">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Additional Charges
+      </div>
+      <div class="p-4 grid grid-cols-2 gap-4">
+        <div class="field">
+          <label>Lab</label>
+          <input id="labCharge" type="number" value="0" min="0" step="0.01" oninput="calcGrandTotal()" />
+        </div>
+        <div class="field">
+          <label>Doctor</label>
+          <input id="doctorCharge" type="number" value="0" min="0" step="0.01" oninput="calcGrandTotal()" />
+        </div>
+        <div class="field">
+          <label>Injection</label>
+          <input id="injectionCharge" type="number" value="0" min="0" step="0.01" oninput="calcGrandTotal()" />
+        </div>
+        <div class="field">
+          <label>Nursing</label>
+          <input id="nursingCharge" type="number" value="0" min="0" step="0.01" oninput="calcGrandTotal()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="card">
+      <div class="card-header">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Bill Summary
+      </div>
+      <div class="p-4 space-y-1">
+        <div class="summary-row">
+          <span class="lbl">Total Discount</span>
+          <span id="sumDiscount" class="val-red">0.00</span>
+        </div>
+        <div class="summary-row">
+          <span class="lbl">Product Subtotal</span>
+          <span id="sumSubtotal" class="val">0.00</span>
+        </div>
+        <div class="summary-row">
+          <span class="lbl">Additional Charges</span>
+          <span id="sumAdditional" class="val">0.00</span>
+        </div>
+        <div class="summary-row">
+          <span class="lbl">
+            Bulk Discount
+            <span class="text-xs text-green-700 font-semibold" id="bulkLabel">(≥₹10,000 → 5%)</span>
+          </span>
+          <span id="sumBulkDiscount" class="val-red">0.00</span>
+        </div>
+        <div class="summary-row">
+          <span class="lbl">Rounding Off</span>
+          <span id="sumRounding" class="val">0</span>
+        </div>
+        <hr class="my-1 border-gray-200" />
+        <div class="summary-row grand">
+          <span class="lbl text-lg font-bold">Grand Total</span>
+          <span id="sumGrand" class="val text-xl">₹ 0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Action Buttons ── -->
+  <div class="flex gap-3 justify-start pb-6">
+    <button class="btn btn-primary" onclick="saveSale('saved')">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17H17.01M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"/></svg>
+      Save &amp; Print
+    </button>
+    <button class="btn btn-success" onclick="saveSale('submitted')">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      Submit Sale
+    </button>
+  </div>
+
+</main>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATA & STATE
+// ═══════════════════════════════════════════════════════
+let rowCount = 0;
+let lastSaleId = null;
+
+const DOCTORS = ['Dr. Rajesh Kumar','Dr. Priya Sharma','Dr. Arun Mehta','Dr. Sunita Patel','Dr. Vikram Singh'];
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  setInvoiceDate();
+  loadInvoiceNo();
+  addRow(); 
+  addRow();
+   addRow(); // default 3 rows
+   calcGrandTotal();
+  initDoctorAutocomplete();
+});
+
+function setInvoiceDate() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('invoiceDate').value = today;
+}
+
+async function loadInvoiceNo() {
+  try {
+    const r = await fetch('api.php?action=get_invoice_no');
+    const d = await r.json();
+    if (d.success) {
+      document.getElementById('invoiceNo').value = d.invoice_no;
+      document.getElementById('badge-invoice').textContent = d.invoice_no;
+    }
+  } catch(e) {
+    // offline demo
+    const today = new Date();
+    const ds = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+    document.getElementById('invoiceNo').value = 'SAL-'+ds+'-777';
+    document.getElementById('badge-invoice').textContent ='SAL-'+ds+'-777';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADD / REMOVE ROWS
+// ═══════════════════════════════════════════════════════
+function addRow() {
+  rowCount++;
+  const id = rowCount;
+  const tbody = document.getElementById('productBody');
+  const tr = document.createElement('tr');
+  tr.id = 'row-' + id;
+  tr.innerHTML = `
+    <td>
+      <div class="autocomplete-wrap" id="acWrap${id}">
+        <input type="text" id="prodName${id}" placeholder="Type to search product..." autocomplete="off"
+               oninput="searchProduct(${id})" class="text-left" style="min-width:150px" />
+        <div class="autocomplete-dropdown hidden" id="acDrop${id}"></div>
+      </div>
+    </td>
+    <td style="text-align:center">
+      <label class="salt-label">
+        <input type="checkbox" id="saltChk${id}" onchange="toggleSaltSearch(${id})" />
+        <span>SALT</span>
+      </label>
+    </td>
+    <td><input type="number" id="qty${id}" value="1" min="1" oninput="calcRow(${id})" style="width:50px" /></td>
+    <td><input type="text" id="batch${id}" placeholder="Batch" readonly style="width:70px" /></td>
+    <td><input type="text" id="expDate${id}" placeholder="MM/YY" readonly style="width:60px" /></td>
+    <td><input type="number" id="rate${id}" value="0.00" min="0" step="0.01" oninput="calcRow(${id})" style="width:65px" /></td>
+    <td><input type="number" id="gst${id}" value="0.00" min="0" step="0.01" oninput="calcRow(${id})" style="width:55px" /></td>
+    <td><input type="number" id="mrp${id}" value="0.00" readonly style="width:65px" /></td>
+    <td><input type="number" id="disc${id}" value="0.00" min="0" max="100" step="0.01" oninput="calcRow(${id})" style="width:55px" /></td>
+    <td class="total-cell"><span id="total${id}">0.00</span></td>
+    <td style="text-align:center">
+      <button class="btn-del" onclick="removeRow(${id})" title="Delete Row">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+
+  // close dropdown on outside click
+  document.addEventListener('click', function(e){
+
+  document
+  .querySelectorAll(
+  '.autocomplete-wrap'
+  )
+  .forEach(wrap => {
+
+      if(
+      !wrap.contains(e.target)
+      )
+      {
+          const drop =
+          wrap.querySelector(
+          '.autocomplete-dropdown'
+          );
+
+          if(drop)
+          {
+             drop.classList.add(
+             'hidden'
+             );
+          }
+      }
+  });
+
+});
+}
+
+function removeRow(id) {
+  const row = document.getElementById('row-' + id);
+  if (row) row.remove();
+  calcGrandTotal();
+}
+
+// ═══════════════════════════════════════════════════════
+//  PRODUCT AUTOCOMPLETE
+// ═══════════════════════════════════════════════════════
+let searchTimers = {};
+
+function toggleSaltSearch(id) {
+  const inp = document.getElementById('prodName' + id);
+  if (inp.value.trim()) searchProduct(id);
+}
+
+async function searchProduct(id) {
+  clearTimeout(searchTimers[id]);
+  searchTimers[id] = setTimeout(async () => {
+    const query = document.getElementById('prodName' + id).value.trim();
+    const useSalt = document.getElementById('saltChk' + id).checked ? '1' : '0';
+    const drop = document.getElementById('acDrop' + id);
+
+    if (query.length < 2) { drop.classList.add('hidden'); return; }
+
+    try {
+      const r = await fetch(`api.php?action=search_product&q=${encodeURIComponent(query)}&salt=${useSalt}`);
+      const products = await r.json();
+      renderDropdown(id, products);
+    } catch(e) {
+      // Demo fallback - search in sample data
+      const sampleProducts = getSampleProducts().filter(p =>
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.salt.toLowerCase().includes(query.toLowerCase())
+      );
+      renderDropdown(id, sampleProducts.slice(0, 8));
+    }
+  }, 200);
+}
+
+function renderDropdown(id, products) {
+  const drop = document.getElementById('acDrop' + id);
+  if (!products.length) { drop.classList.add('hidden'); return; }
+
+  drop.innerHTML = '';
+  products.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'autocomplete-item';
+    item.innerHTML = `
+      <span class="prod-name">${p.name}</span>
+      <span class="prod-salt">Salt: ${p.salt || 'N/A'}</span>
+      <span class="prod-info">Batch: ${p.batch_no} | Exp: ${p.expiry_date} | Rate: ₹${p.rate} | Stock: ${p.stock ?? 'N/A'}</span>
+    `;
+    item.addEventListener('click', () => fillRow(id, p));
+    drop.appendChild(item);
+  });
+  drop.classList.remove('hidden');
+}
+
+function fillRow(id, p) {
+  document.getElementById('prodName' + id).value = p.name;
+  document.getElementById('batch' + id).value = p.batch_no;
+  document.getElementById('expDate' + id).value = p.expiry_date;
+  document.getElementById('rate' + id).value = parseFloat(p.rate).toFixed(2);
+  document.getElementById('gst' + id).value = parseFloat(p.gst_percent).toFixed(2);
+  document.getElementById('mrp' + id).value = parseFloat(p.mrp).toFixed(2);
+  document.getElementById('disc' + id).value = '0.00';
+  const drop = document.getElementById('acDrop' + id);
+  drop.classList.add('hidden');
+  calcRow(id);
+}
+
+// ═══════════════════════════════════════════════════════
+//  ROW CALCULATION: Rate + GST% = MRP | MRP - Disc% = Total
+// ═══════════════════════════════════════════════════════
+function calcRow(id) {
+  const qty = parseFloat(document.getElementById('qty' + id).value) || 0;
+  const rate = parseFloat(document.getElementById('rate' + id).value) || 0;
+  const gst = parseFloat(document.getElementById('gst' + id).value) || 0;
+  const disc = parseFloat(document.getElementById('disc' + id).value) || 0;
+
+  // MRP = Rate + (Rate * GST%) 
+  const mrp = rate + (rate * gst / 100);
+  document.getElementById('mrp' + id).value = mrp.toFixed(2);
+
+  // Total = MRP * Qty - Discount on MRP
+  const totalBeforeDisc = mrp * qty;
+  const totalAfterDisc = totalBeforeDisc - (totalBeforeDisc * disc / 100);
+
+  document.getElementById('total' + id).textContent = totalAfterDisc.toFixed(2);
+  calcGrandTotal();
+}
+
+// ═══════════════════════════════════════════════════════
+//  GRAND TOTAL CALCULATION
+// ═══════════════════════════════════════════════════════
+function calcGrandTotal() {
+  let productSubtotal = 0;
+  let totalDiscount = 0;
+
+  // Sum all row totals
+  const rows = document.querySelectorAll('#productBody tr');
+  rows.forEach(row => {
+    const idMatch = row.id.match(/row-(\d+)/);
+    if (!idMatch) return;
+    const rid = idMatch[1];
+
+    const qty = parseFloat(document.getElementById('qty' + rid)?.value) || 0;
+    const rate = parseFloat(document.getElementById('rate' + rid)?.value) || 0;
+    const gst = parseFloat(document.getElementById('gst' + rid)?.value) || 0;
+    const disc = parseFloat(document.getElementById('disc' + rid)?.value) || 0;
+
+    const mrp = rate + (rate * gst / 100);
+    const gross = mrp * qty;
+    const rowDisc = gross * disc / 100;
+    const rowTotal = gross - rowDisc;
+
+    productSubtotal += rowTotal;
+    totalDiscount += rowDisc;
+  });
+
+  // Additional charges
+  const lab = parseFloat(document.getElementById('labCharge').value) || 0;
+  const doc = parseFloat(document.getElementById('doctorCharge').value) || 0;
+  const inj = parseFloat(document.getElementById('injectionCharge').value) || 0;
+  const nur = parseFloat(document.getElementById('nursingCharge').value) || 0;
+  const additionalCharges = lab + doc + inj + nur;
+
+  // Bulk discount: if subtotal >= 10000, apply 5% bulk discount
+  let bulkDiscount = 0;
+  if (productSubtotal >= 10000) {
+    bulkDiscount = productSubtotal * 0.05;
+  }
+
+  let preFinal = productSubtotal - bulkDiscount + additionalCharges;
+
+  // Rounding off
+  const rounded = Math.round(preFinal);
+  const roundingOff = (rounded - preFinal).toFixed(2);
+  const grandTotal = rounded;
+
+  // Update UI
+  document.getElementById('sumDiscount').textContent = totalDiscount.toFixed(2);
+  document.getElementById('sumSubtotal').textContent = productSubtotal.toFixed(2);
+  document.getElementById('sumAdditional').textContent = additionalCharges.toFixed(2);
+  document.getElementById('sumBulkDiscount').textContent = bulkDiscount.toFixed(2);
+  document.getElementById('sumRounding').textContent = roundingOff;
+  document.getElementById('sumGrand').textContent = '₹ ' + grandTotal.toFixed(2);
+
+  // Highlight bulk discount label
+  const bulkLabel = document.getElementById('bulkLabel');
+  bulkLabel.style.color = bulkDiscount > 0 ? '#2E7D32' : '#9E9E9E';
+}
+
+// ═══════════════════════════════════════════════════════
+//  DOCTOR AUTOCOMPLETE
+// ═══════════════════════════════════════════════════════
+function initDoctorAutocomplete() {
+  const inp = document.getElementById('doctorName');
+  const drop = document.getElementById('doctorDropdown');
+
+  inp.addEventListener('input', () => {
+    const q = inp.value.toLowerCase();
+    const matches = DOCTORS.filter(d => d.toLowerCase().includes(q));
+    if (!matches.length || !q) { drop.classList.add('hidden'); return; }
+    drop.innerHTML = matches.map(d =>
+      `<div class="autocomplete-item" onclick="selectDoctor('${d}')"><span class="prod-name">${d}</span></div>`
+    ).join('');
+    drop.classList.remove('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('doctorWrap').contains(e.target)) drop.classList.add('hidden');
+  });
+}
+
+function selectDoctor(name) {
+  document.getElementById('doctorName').value = name;
+  document.getElementById('doctorDropdown').classList.add('hidden');
+}
+
+// ═══════════════════════════════════════════════════════
+//  SAVE SALE
+// ═══════════════════════════════════════════════════════
+async function saveSale(status) {
+  const patientName = document.getElementById('patientName').value.trim();
+  if (!patientName) { showToast('Please enter Patient Name', 'error'); return; }
+
+  // Collect items
+  const items = [];
+  document.querySelectorAll('#productBody tr').forEach(row => {
+    const idMatch = row.id.match(/row-(\d+)/);
+    if (!idMatch) return;
+    const rid = idMatch[1];
+    const pname = document.getElementById('prodName' + rid)?.value.trim();
+    if (!pname) return;
+    items.push({
+      product_name: pname,
+      salt: '',
+      batch_no: document.getElementById('batch' + rid)?.value || '',
+      expiry_date: document.getElementById('expDate' + rid)?.value || '',
+      qty: parseInt(document.getElementById('qty' + rid)?.value) || 1,
+      rate: parseFloat(document.getElementById('rate' + rid)?.value) || 0,
+      gst_percent: parseFloat(document.getElementById('gst' + rid)?.value) || 0,
+      mrp: parseFloat(document.getElementById('mrp' + rid)?.value) || 0,
+      disc_percent: parseFloat(document.getElementById('disc' + rid)?.value) || 0,
+      total: parseFloat(document.getElementById('total' + rid)?.textContent) || 0,
+    });
+  });
+
+  if (!items.length) { showToast('Please add at least one product', 'error'); return; }
+
+  const payload = {
+    patient_name: patientName,
+    patient_phone: document.getElementById('patientPhone').value,
+    patient_address: document.getElementById('patientAddress').value,
+    doctor_name: document.getElementById('doctorName').value,
+    reminder: document.getElementById('reminderChk').checked ? 1 : 0,
+    invoice_date: document.getElementById('invoiceDate').value,
+    lab_charge: parseFloat(document.getElementById('labCharge').value) || 0,
+    doctor_charge: parseFloat(document.getElementById('doctorCharge').value) || 0,
+    injection_charge: parseFloat(document.getElementById('injectionCharge').value) || 0,
+    nursing_charge: parseFloat(document.getElementById('nursingCharge').value) || 0,
+    total_discount: parseFloat(document.getElementById('sumDiscount').textContent) || 0,
+    product_subtotal: parseFloat(document.getElementById('sumSubtotal').textContent) || 0,
+    additional_charges: parseFloat(document.getElementById('sumAdditional').textContent) || 0,
+    rounding_off: parseFloat(document.getElementById('sumRounding').textContent) || 0,
+    grand_total: parseFloat(document.getElementById('sumGrand').textContent.replace('₹ ', '')) || 0,
+    status: status,
+    items: items,
+  };
+
+  try {
+    const r = await fetch('api.php?action=save_sale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      lastSaleId = d.sale_id;
+      showToast('Sale saved! Invoice: ' + d.invoice_no, 'success');
+      // Update invoice display
+      document.getElementById('invoiceNo').value = d.invoice_no;
+      document.getElementById('badge-invoice').textContent = d.invoice_no;
+
+      if (status === 'saved') {
+        // Open PDF
+        setTimeout(() => window.open('print_pdf.php?id=' + d.sale_id, '_blank'), 800);
+      } else {
+        setTimeout(() => window.location.href = 'sales_list.php', 1200);
+      }
+    } else {
+      showToast('Error: ' + d.message, 'error');
+    }
+  } catch(e) {
+    showToast('Server not connected. (Demo mode)', 'error');
+    console.error(e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  setTimeout(() => { t.className = ''; }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+//  SAMPLE PRODUCTS (offline demo fallback)
+// ═══════════════════════════════════════════════════════
+function getSampleProducts() {
+  return [
+    { id:1, name:'Paracetamol 500mg', salt:'Paracetamol', batch_no:'BT2024A', expiry_date:'12/2027', rate:2.50, gst_percent:5, mrp:2.80, stock:500 },
+    { id:2, name:'Crocin 500mg', salt:'Paracetamol', batch_no:'CR2024B', expiry_date:'06/2027', rate:5.00, gst_percent:5, mrp:5.50, stock:300 },
+    { id:3, name:'Amoxicillin 250mg', salt:'Amoxicillin', batch_no:'AM2024C', expiry_date:'03/2027', rate:8.00, gst_percent:12, mrp:9.50, stock:200 },
+    { id:4, name:'Augmentin 625mg', salt:'Amoxicillin + Clavulanic Acid', batch_no:'AU2024D', expiry_date:'09/2027', rate:45.00, gst_percent:12, mrp:52.00, stock:150 },
+    { id:5, name:'Azithromycin 250mg', salt:'Azithromycin', batch_no:'AZ2024E', expiry_date:'12/2027', rate:18.00, gst_percent:12, mrp:20.00, stock:100 },
+    { id:6, name:'Metformin 500mg', salt:'Metformin Hydrochloride', batch_no:'MF2024F', expiry_date:'06/2028', rate:3.50, gst_percent:5, mrp:4.00, stock:400 },
+    { id:7, name:'Omeprazole 20mg', salt:'Omeprazole', batch_no:'OM2024J', expiry_date:'06/2027', rate:4.50, gst_percent:5, mrp:5.00, stock:350 },
+    { id:8, name:'Dolo 650mg', salt:'Paracetamol', batch_no:'DL2024P', expiry_date:'03/2028', rate:7.00, gst_percent:5, mrp:8.00, stock:350 },
+    { id:9, name:'Cetirizine 10mg', salt:'Cetirizine', batch_no:'CE2024L', expiry_date:'03/2028', rate:3.00, gst_percent:5, mrp:3.50, stock:600 },
+    { id:10, name:'Ibuprofen 400mg', salt:'Ibuprofen', batch_no:'IB2024N', expiry_date:'09/2027', rate:5.00, gst_percent:5, mrp:5.80, stock:400 },
+    { id:11, name:'Vitamin D3 60000IU', salt:'Cholecalciferol', batch_no:'VD2024Q', expiry_date:'06/2028', rate:35.00, gst_percent:12, mrp:40.00, stock:150 },
+    { id:12, name:'Atorvastatin 10mg', salt:'Atorvastatin', batch_no:'AT2024H', expiry_date:'12/2027', rate:12.00, gst_percent:12, mrp:14.00, stock:180 },
+    { id:13, name:'Amlodipine 5mg', salt:'Amlodipine Besylate', batch_no:'AM2024T', expiry_date:'03/2028', rate:7.50, gst_percent:12, mrp:8.50, stock:220 },
+    { id:14, name:'Pantoprazole 40mg', salt:'Pantoprazole', batch_no:'PA2024K', expiry_date:'12/2027', rate:6.00, gst_percent:5, mrp:6.80, stock:280 },
+    { id:15, name:'Calcium Carbonate 500mg', salt:'Calcium Carbonate', batch_no:'CC2024R', expiry_date:'12/2027', rate:4.00, gst_percent:5, mrp:4.50, stock:500 },
+  ];
+}
+</script>
+</body>
+</html>
